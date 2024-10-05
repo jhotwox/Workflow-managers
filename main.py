@@ -5,10 +5,11 @@ from contextlib import closing
 import sqlite3
 
 from prefect import Flow, task
-from prefect.server.schemas.schedules import IntervalSchedule
-# from prefect.tasks.database.sqlite import SQLiteScript
+from prefect.schedules import IntervalSchedule
+from prefect.tasks.database.sqlite import SQLiteScript
+# from prefect.server.schemas.schedules import IntervalSchedule
 
-create_table = sqlite3(
+create_table = SQLiteScript(
     db="cfpbcomplaints.db",
     script='CREATE TABLE IF NOT EXISTS complaint (timestamp TEXT, state TEXT, company TEXT, complain_what_happened TEXT)'
 )
