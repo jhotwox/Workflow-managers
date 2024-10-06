@@ -9,27 +9,34 @@ from prefect.schedules import IntervalSchedule
 from prefect.tasks.database.sqlite import SQLiteScript
 # from prefect.server.schemas.schedules import IntervalSchedule
 
+# # Eliminar la tabla si ya existe (opcional)
+# def reset_database():
+#     with closing(sqlite3.connect("cfpbcomplaints.db")) as conn:
+#         with closing(conn.cursor()) as cursor:
+#             cursor.execute("DROP TABLE IF EXISTS complaint;")
+#             conn.commit()
+
 create_table = SQLiteScript(
     db="cfpbcomplaints.db",
-    script='CREATE TABLE IF NOT EXISTS complaint (timestamp TEXT, state TEXT, company TEXT, complain_what_happened TEXT)'
+    script='CREATE TABLE IF NOT EXISTS complaint (date_received TEXT, state TEXT, product TEXT, company TEXT, complaint_what_happened TEXT)'
 )
 
 # setup
 @task
 def get_complaint_data():
-    r = requests.get("'https://jsonplaceholder.cypress.io/todos/1", params={"size":10})
+    r = requests.get("https://www.consumerfinance.gov/data-research/consumer-complaints/search/api/v1/", params={"size":10})
     response_json = json.loads(r.text)
-    return response_json
+    return response_json['hits']['hits']
 
 # extract
 @task
 def parse_complaint_data(raw):
     complaints = []
-    Complaint = namedtuple("Complaint", ['data_received', 'state', 'product', 'company', 'complaint_what_happened'])
+    Complaint = namedtuple("Complaint", ['date_received', 'state', 'product', 'company', 'complaint_what_happened'])
     for row in raw:
         source = row.get('_source')
         this_complaint = Complaint(
-            data_received=source.get('date_received'),
+            date_received=source.get('date_received'),
             state=source.get('state'),
             product=source.get('product'),
             company=source.get('company'),
@@ -51,10 +58,11 @@ def store_complaints(parsed):
 schedule = IntervalSchedule(interval=timedelta(minutes=1))
 
 with Flow("my etl flow", schedule) as f:
+    # reset_database()
     db_table = create_table()
     raw = get_complaint_data()
     parsed = parse_complaint_data(raw)
     populated_table = store_complaints(parsed)
     populated_table.set_upstream(db_table)
- 
+
 f.run()
