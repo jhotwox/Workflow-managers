@@ -27,7 +27,7 @@ def get_todo_data():
 @task
 def parse_todo_data(raw):
     todos = []
-    Todo = namedtuple("Todo", ['USERID', 'ID', 'TITLE', 'COMPLETED'])
+    Todo = namedtuple("Todo", ['userId', 'id', 'title', 'completed'])
     for row in raw:
         
         this_todo = Todo(
@@ -50,13 +50,10 @@ def store_todos(parsed):
             conn.commit()
 
 @task
-# show a table of todos in format: userId | id | title | completed
+# show a table of todos
 def show_todos(todo: list):
     todo.insert(0, ("userId", "id", "title", "completed"))
     table(todo)
-    # print(todo)
-    # for task in todo:
-    #     print(f"{task[0]} | {task[1]} | {task[2]} | {task[3]}")
 
 # Show first five user todos
 @task
@@ -83,10 +80,8 @@ with Flow("my etl flow", schedule) as f:
     populated_table = store_todos(parsed)
     populated_table.set_upstream(db_table)
     todos = first_five_user_todos()
-    # table(todos)
     show_todos(todos)
     todos = uncompleted_user_todos()
-    # table(todos)
     show_todos(todos)
 
 f.run()
