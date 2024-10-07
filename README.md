@@ -65,4 +65,11 @@ f.run()
 > Mostrar las tareas en forma de tabla
 
 # Resultados
-<img src="">
+> Ejecución del programa correctamente
+<img src="https://github.com/jhotwox/Workflow-managers/blob/main/correcto1.png?raw=true">
+
+> Repetición debido a que paso el minuto asignado en el intervalo
+<img src="https://github.com/jhotwox/Workflow-managers/blob/main/correcto2.png?raw=true">
+
+> Error debido a que modifique la linea 30 en la función `parse_todo_data()` para que no se guarde si la tarea fue completada o no
+<img src="https://github.com/jhotwox/Workflow-managers/blob/main/error.png?raw=true">
